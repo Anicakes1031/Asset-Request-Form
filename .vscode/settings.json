@@ -1,0 +1,14 @@
+{
+    "editor.foldingImportsByDefault": true,
+    "explorer.compactFolders": false,
+
+    "python.defaultInterpreterPath": "C:/odoo17/venv/Scripts/python.exe",
+
+    "python.autoComplete.extraPaths": [
+        "C:/odoo17/odoo"
+    ],
+
+    "python.analysis.extraPaths": [
+        "C:/odoo17/odoo"
+    ]
+}

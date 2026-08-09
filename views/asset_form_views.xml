@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_asset_form_tree" model="ir.ui.view">
+        <field name="name">asset.form.tree</field>
+        <field name="model">asset.form</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="asset_reference"/>
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="asset_type_id"/>
+                <field name="model_id"/>
+                <field name="date"/>                
+                <field name="status" widget="badge" 
+                       decoration-muted="status == 'draft'" decoration-info="status == 'it_approved'"
+                       decoration-primary="status == 'ceo_approved'" decoration-warning="status == 'treasury'"
+                       decoration-success="status == 'released'" decoration-danger="status == 'cancelled'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_asset_form_form" model="ir.ui.view">
+        <field name="name">asset.form.form</field>
+        <field name="model">asset.form</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <!-- Status Bar -->
+                    <field name="status" widget="statusbar" statusbar_visible="draft,it_approved,ceo_approved,treasury,released"/>
+                    
+                    <!-- Print Report Button -->
+                    <button name="action_print_report" string="Print Report" type="object" 
+                            class="btn-primary" 
+                            icon="fa-print"/>
+                    
+                    <!-- IT Department Buttons -->
+                    <button name="action_set_it_approved" string="IT Approve" type="object" 
+                            class="btn-primary" 
+                            invisible="status != 'draft'"
+                            groups="asset_form.group_it_department,base.group_system"/>
+                    
+                    <button name="action_set_released" string="Release Asset" type="object" 
+                            class="btn-primary" 
+                            invisible="status != 'treasury'"
+                            groups="asset_form.group_it_department,base.group_system"/>
+                    
+                    <!-- CEO Buttons -->
+                    <button name="action_set_ceo_approved" string="CEO Approve" type="object" 
+                            class="btn-primary" 
+                            invisible="status != 'it_approved'"
+                            groups="asset_form.group_ceo,base.group_system"/>
+                    
+                    <!-- Treasury Buttons -->
+                    <button name="action_set_treasury" string="For Purchase" type="object" 
+                            class="btn-primary" 
+                            invisible="status != 'ceo_approved'"
+                            groups="asset_form.group_treasury,base.group_system"/>
+                    
+                    <!-- Cancel Button -->
+                    <button name="action_cancel" string="Cancel" type="object" 
+                            class="btn-danger" 
+                            invisible="status in ['cancelled', 'released']"
+                            groups="asset_form.group_it_department,asset_form.group_ceo,asset_form.group_treasury,base.group_system"/>
+                    
+                </header>
+                <sheet>
+                    <h1><field name="asset_reference"/></h1>
+                    
+                    <!-- 1. MAIN FIELDS PARA SA IT / ADMIN (Editable sa draft state) -->
+                    <group groups="asset_form.group_it_department,base.group_system">
+                        <group>
+                            <field name="employee_id" readonly="status != 'draft'"/>
+                            <field name="asset_type_id" readonly="status != 'draft'"/>
+                            <field name="department_id"/>
+                        </group>
+                        <group>
+                            <field name="model_id" domain="[('asset_type_id', '=', asset_type_id)]" readonly="status != 'draft'"/>
+                            <field name="serial_number" readonly="status not in ['draft', 'treasury']"/>
+                            <field name="date" readonly="status != 'draft'"/>
+                        </group>
+                    </group>
+
+                    <!-- 2. MAIN FIELDS PARA SA NON-IT (CEO, Treasury, Employees) - PERMANENTLY READONLY -->
+                    <group groups="!asset_form.group_it_department,!base.group_system">
+                        <group>
+                            <field name="employee_id" readonly="1"/>
+                            <field name="asset_type_id" readonly="1"/>
+                            <field name="department_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="model_id" readonly="1"/>
+                            <field name="serial_number" readonly="1"/>
+                            <field name="date" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Signature Status Display -->
+                    <group string="Signature Status" colspan="4" invisible="status in ['draft', 'cancelled', 'released']">
+                        <group col="3" style="display: flex; flex-direction: row;">
+                            <field name="it_signed" string="IT Signed" invisible="not it_signed" 
+                                class="text-success" style="margin-right: 15px;"/>
+                            <field name="ceo_signed" string="CEO Signed" invisible="not ceo_signed" 
+                                class="text-success" style="margin-right: 15px;"/>
+                            <field name="treasury_signed" string="Treasury Signed" invisible="not treasury_signed" 
+                                class="text-success"/>
+                        </group>
+                    </group>
+
+                    <!-- E-Signature Note -->
+                    <div class="alert alert-info" role="alert" 
+                        invisible="status not in ['draft', 'it_approved', 'ceo_approved'] or status in ['cancelled', 'released']"
+                        groups="asset_form.group_it_department,asset_form.group_ceo,asset_form.group_treasury,base.group_system">
+                        <span class="fa fa-info-circle"/> 
+                        <strong>Note:</strong> Upload your e-signature before approving.
+                    </div>
+
+                    <!-- Notebook (SIGNATURE PAGES) -->
+                    <notebook>
+                        <!-- Page 1: IT Department Signature -->
+                        <page string="IT Department Signature" 
+                              groups="asset_form.group_it_department,base.group_system"
+                              invisible="status != 'draft' or status in ['cancelled', 'released']">
+                            <group>
+                                <group>
+                                    <field name="it_signature" widget="image" filename="it_signature_name" 
+                                           readonly="status != 'draft'"/>
+                                </group>
+                                <group>
+                                    <field name="it_signature_name" placeholder="Enter your full name" 
+                                           readonly="status != 'draft'"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- Page 2: CEO Signature -->
+                        <page string="CEO Signature" 
+                              groups="asset_form.group_ceo,base.group_system"
+                              invisible="status != 'it_approved' or status in ['cancelled', 'released']">
+                            <group>
+                                <group>
+                                    <field name="ceo_signature" widget="image" filename="ceo_signature_name" 
+                                           readonly="status != 'it_approved'"/>
+                                </group>
+                                <group>
+                                    <field name="ceo_signature_name" placeholder="Enter your full name" 
+                                           readonly="status != 'it_approved'"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- Page 3: Treasury Signature -->
+                        <page string="Treasury Signature" 
+                              groups="asset_form.group_treasury,base.group_system"
+                              invisible="status != 'ceo_approved' or status in ['cancelled', 'released']">
+                            <group>
+                                <group>
+                                    <field name="treasury_signature" widget="image" filename="treasury_signature_name" 
+                                           readonly="status != 'ceo_approved'"/>
+                                </group>
+                                <group>
+                                    <field name="treasury_signature_name" placeholder="Enter your full name" 
+                                           readonly="status != 'ceo_approved'"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+
+                    <!-- Cancelled Message -->
+                    <div class="alert alert-danger" role="alert" style="margin-top: 16px;" invisible="status != 'cancelled'">
+                        <span class="fa fa-times-circle"/> 
+                        <strong>Cancelled:</strong> This request has been cancelled.
+                    </div>
+                    
+                    <!-- Released Message -->
+                    <div class="alert alert-success" role="alert" style="margin-top: 16px;" invisible="status != 'released'">
+                        <span class="fa fa-check-circle"/> 
+                        <strong>Released:</strong> This asset has been released to the employee.
+                    </div>
+                    
+                    <!-- View Only Note - Regular Employees lang -->
+                    <div class="alert alert-info" role="alert" style="margin-top: 16px;" 
+                        groups="!asset_form.group_it_department,!asset_form.group_ceo,!asset_form.group_treasury,!base.group_system">
+                        <span class="fa fa-info-circle"/> 
+                        <strong>Note:</strong> This request is for viewing only. Please contact IT Department for any concerns.
+                    </div>
+                </sheet>
+                
+                <!-- Mail Chatter -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_form_search" model="ir.ui.view">
+        <field name="name">asset.form.search</field>
+        <field name="model">asset.form</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="asset_reference"/>
+                <field name="employee_id"/>
+                <field name="status"/>
+                <filter name="draft" string="Draft" domain="[('status','=','draft')]"/>
+                <filter name="it_approved" string="IT Approved" domain="[('status','=','it_approved')]"/>
+                <filter name="ceo_approved" string="CEO Approved" domain="[('status','=','ceo_approved')]"/>
+                <filter name="treasury" string="For Purchase" domain="[('status','=','treasury')]"/>
+                <filter name="released" string="Released" domain="[('status','=','released')]"/>
+                <filter name="cancelled" string="Cancelled" domain="[('status','=','cancelled')]"/>
+                <filter name="my_requests" string="My Requests" domain="[('employee_id.user_id','=',uid)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_asset_form" model="ir.actions.act_window">
+        <field name="name">Asset Request Forms</field>
+        <field name="res_model">asset.form</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'edit': 1, 'default_status': 'draft'}</field>
+    </record>
+
+    <record id="action_asset_type" model="ir.actions.act_window">
+        <field name="name">Asset Types</field>
+        <field name="res_model">asset.type</field>
+        <field name="view_mode">list,form</field>
+    </record>   
+
+</odoo>

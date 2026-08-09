@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_asset_model_tree" model="ir.ui.view">
+        <field name="name">asset.model.tree</field>
+        <field name="model">asset.model</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="asset_type_id"/>
+                <field name="brand"/>
+                <field name="name"/>
+                <field name="specification"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_asset_model_form" model="ir.ui.view">
+        <field name="name">asset.model.form</field>
+        <field name="model">asset.model</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="asset_type_id"/>
+                        <field name="brand"/>
+                        <field name="name"/>
+                        <field name="specification"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_asset_model" model="ir.actions.act_window">
+        <field name="name">Asset Models</field>
+        <field name="res_model">asset.model</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Paper Format -->
+    <record id="paperformat_asset_form" model="report.paperformat">
+        <field name="name">Asset Form A4</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">40</field>      <!-- Space para sa Header -->
+        <field name="margin_bottom">20</field>   <!-- Space para sa Footer -->
+        <field name="margin_left">15</field>
+        <field name="margin_right">15</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">30</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <!-- Report Action -->
+    <record id="action_asset_form_report" model="ir.actions.report">
+        <field name="name">Asset Request Form</field>
+        <field name="model">asset.form</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">asset_form.asset_form_report_template</field>
+        <field name="report_file">asset_form.asset_form_report_template</field>
+        <field name="binding_model_id" ref="model_asset_form"/>
+        <field name="binding_type">report</field>
+        <field name="print_report_name">'Asset Hand Over - %s' % (object.asset_reference)</field>
+        <field name="paperformat_id" ref="paperformat_asset_form"/>
+    </record>
+
+    <!-- Report Template -->
+    <template id="asset_form_report_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <!-- t-call="web.basic_layout" ang susi para lumabas ang class="footer" at class="header" -->
+                <t t-call="web.basic_layout">
+                    
+                    <!-- Official Header -->
+                    <div class="header" style="font-family: sans-serif;">
+                        <div style="text-align: center; border-bottom: 1px solid #000; padding-bottom: 10px;">
+                            <h1 style="font-size: 20px; font-weight: bold; margin: 10px 0; letter-spacing: 1px; text-transform: uppercase;">
+                                REFINETTE COSMETIC MANUFACTURING CORPORATION
+                            </h1>
+                            <h2 style="font-size: 18px; margin: 15px 0 10px 0; font-weight: normal;">
+                                COMPANY ASSETS HAND OVER FORM
+                            </h2>
+                        </div>
+                    </div>
+
+                    <!-- Page Body -->
+                    <div class="page" style="font-family: sans-serif; line-height: 1.5; color: #000;">
+                        
+                        <!-- Date -->
+                        <div style="text-align: right; margin-bottom: 15px;">
+                            <p style="font-size: 16px; margin: 0;">
+                                <strong>Date:</strong> 
+                                <span t-esc="doc.date.strftime('%m/%d/%Y') if doc.date else ''"/>
+                            </p>
+                        </div>
+
+                        <!-- Employee Information -->
+                        <div style="margin-bottom: 15px;">
+                            <p style="font-size: 16px; margin: 5px 0;">
+                                <strong>Employee Name:</strong> <span t-esc="doc.employee_id.name"/>
+                            </p>
+                            <p style="font-size: 16px; margin: 5px 0;">
+                                <strong>Department:</strong> <span t-esc="doc.department_id.name or '_____________________'"/>
+                            </p>
+                        </div>
+
+                        <!-- Introduction -->
+                        <div style="margin-bottom: 15px;">
+                            <p style="font-size: 16px; text-align: justify; margin: 0;">
+                                Please find below asset handed over to you to support you in carrying out your assignment 
+                                in a most proficient manner.
+                            </p>
+                        </div>
+
+                        <!-- Asset Details Table -->
+                        <div style="margin-bottom: 20px;">
+                            <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; font-size: 16px;">
+                                <tr>
+                                    <td style="padding: 8px 10px; border: 1px solid #000; font-weight: bold; width: 35%;">
+                                        Asset Type
+                                    </td>
+                                    <td style="padding: 8px 10px; border: 1px solid #000; width: 65%;" t-esc="doc.asset_type_id.name"/>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 10px; border: 1px solid #000; font-weight: bold;">
+                                        Asset Name
+                                    </td>
+                                    <td style="padding: 8px 10px; border: 1px solid #000;" t-esc="doc.model_id.display_name"/>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 10px; border: 1px solid #000; font-weight: bold;">
+                                        Model
+                                    </td>
+                                    <td style="padding: 8px 10px; border: 1px solid #000;" t-esc="(doc.model_id.brand or '') + ' - ' + (doc.model_id.name or '')"/>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 10px; border: 1px solid #000; font-weight: bold;">
+                                        Serial Number
+                                    </td>
+                                    <td style="padding: 8px 10px; border: 1px solid #000;" t-esc="doc.serial_number or '_____________________'"/>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Acknowledgment -->
+                        <div style="margin-bottom: 20px;">
+                            <p style="font-size: 15px; text-align: justify; line-height: 1.5; margin: 0;">
+                                I hereby acknowledge that I have received in good condition the above mentioned asset, 
+                                I understand that this asset belongs to the company and is under my possession for 
+                                carrying out my office work, I hereby assure that I will take care of the asset to 
+                                the best possible extend.
+                            </p>
+                        </div>
+                        
+                        <!-- Signatures Section -->
+                        <!-- Signatures Section (Pure DIV Layout - Zero Borders Guaranteed) -->
+                        <div style="margin-top: 25px; font-family: sans-serif;">
+                            
+                            <!-- Approved By Header -->
+                            <p style="font-size: 17px; font-weight: bold; margin: 0 0 15px 0; text-align: left;">
+                                Approved By:
+                            </p>
+
+                            <!-- Three Columns for Approvals -->
+                            <div style="width: 100%; display: table; table-layout: fixed; margin-bottom: 25px;">
+                                
+                                <!-- IT -->
+                                <div style="display: table-cell; width: 33.33%; text-align: center; vertical-align: bottom; padding: 0 8px;">
+                                    <div style="height: 45px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: -5px;">
+                                        <t t-if="doc.it_signature">
+                                            <img t-att-src="'data:image/png;base64,' + doc.it_signature.decode('utf-8')" 
+                                                style="max-width: 130px; max-height: 45px; object-fit: contain;"/>
+                                        </t>
+                                    </div>
+                                    <div style="border-bottom: 1px solid #000 !important; padding-bottom: 2px; display: inline-block; width: 90%;">
+                                        <span style="font-size: 16px; font-weight: bold;" t-esc="doc.it_signature_name"/>
+                                    </div>
+                                    <div style="margin-top: 4px;">
+                                        <span style="font-size: 14px; font-style: italic; text-transform: uppercase;">IT DEPARTMENT</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- CEO -->
+                                <div style="display: table-cell; width: 33.33%; text-align: center; vertical-align: bottom; padding: 0 8px;">
+                                    <div style="height: 45px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: -5px;">
+                                        <t t-if="doc.ceo_signature">
+                                            <img t-att-src="'data:image/png;base64,' + doc.ceo_signature.decode('utf-8')" 
+                                                style="max-width: 130px; max-height: 45px; object-fit: contain;"/>
+                                        </t>
+                                    </div>
+                                    <div style="border-bottom: 1px solid #000 !important; padding-bottom: 2px; display: inline-block; width: 90%;">
+                                        <span style="font-size: 16px; font-weight: bold;" t-esc="doc.ceo_signature_name"/>
+                                    </div>
+                                    <div style="margin-top: 4px;">
+                                        <span style="font-size: 14px; font-style: italic; text-transform: uppercase;">CEO</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Treasury -->
+                                <div style="display: table-cell; width: 33.33%; text-align: center; vertical-align: bottom; padding: 0 8px;">
+                                    <div style="height: 45px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: -5px;">
+                                        <t t-if="doc.treasury_signature">
+                                            <img t-att-src="'data:image/png;base64,' + doc.treasury_signature.decode('utf-8')" 
+                                                style="max-width: 130px; max-height: 45px; object-fit: contain;"/>
+                                        </t>
+                                    </div>
+                                    <div style="border-bottom: 1px solid #000 !important; padding-bottom: 2px; display: inline-block; width: 90%;">
+                                        <span style="font-size: 16px; font-weight: bold;" t-esc="doc.treasury_signature_name"/>
+                                    </div>
+                                    <div style="margin-top: 4px;">
+                                        <span style="font-size: 14px; font-style: italic; text-transform: uppercase;">TREASURY</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+                            <!-- Released By and Received By -->
+                            <div style="width: 100%; display: table; table-layout: fixed; margin-top: 20px;">
+                                
+                                <!-- Released By (Left Side) -->
+                                <div style="display: table-cell; width: 33.33%; text-align: center; vertical-align: bottom; padding: 0 10px;">
+                                    <div style="height: 35px;"></div>
+                                    <div style="border-bottom: 1px solid #000 !important; display: inline-block; width: 90%;"></div>
+                                    <div style="margin-top: 4px;">
+                                        <span style="font-size: 15px; font-weight: bold;">Released by</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Empty Center Column -->
+                                <div style="display: table-cell; width: 33.34%;"></div>
+                                
+                                <!-- Received By (Right Side) -->
+                                <div style="display: table-cell; width: 33.33%; text-align: center; vertical-align: bottom; padding: 0 10px;">
+                                    <div style="height: 35px;"></div>
+                                    <div style="border-bottom: 1px solid #000 !important; display: inline-block; width: 90%;"></div>
+                                    <div style="margin-top: 4px;">
+                                        <span style="font-size: 15px; font-weight: bold;">Received by</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Official Footer -->
+                    <div class="footer" style="text-align: center; font-size: 14px; color: #000; font-family: sans-serif;">
+                        <div style="border-top: 1px solid #000; padding-top: 8px;">
+                            <p style="margin: 0; font-weight: bold;">
+                                REFINETTE COSMETIC MANUFACTURING CORPORATION
+                            </p>
+                        </div>
+                    </div>
+
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
